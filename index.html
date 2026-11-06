@@ -277,7 +277,7 @@ function viewM(){let b=0,g=0;for(const s of sv(n)){b+=bud(s,n);g+=sp(s,n)}const 
 <div class="card msob"><h2>Sobres</h2>`;
  h+=`<div class="rings">${sv(n).map(s=>ring(s,sp(s,n),bud(s,n))).join('')}</div>`;
  h+=`<div class="sob" style="margin-top:14px"><div class="row"><b>Extraordinarios</b><span class="mu">${eur(sp('X',n))} · sale del fondo</span></div></div></div>
-<div class="card mmov"><h2>Movimientos del mes</h2><div id="ls"></div></div><button id="pdf" class="pri" style="width:100%;margin-bottom:8px">Informe del mes (PDF)</button><button id="ex" style="width:100%;margin-bottom:8px">Exportar a Excel</button><button id="expl" style="width:100%">Movimientos del mes para la plantilla</button>`;
+<div class="card mmov"><h2>Movimientos del mes</h2><div id="ls"></div></div><button id="pdf" class="pri" style="width:100%;margin-bottom:8px">Informe del mes (PDF)</button><button id="expl" style="width:100%">Exportar movimientos a Excel</button>`;
  $('v').innerHTML=h;fill();heroAnim(rem)}
 function fill(){const pk=!isI(cur)&&cur!='X';if($('pw'))$('pw').hidden=!pk;if(!pk){pset(false);rset(false)}const fm=ed?mi(ed):n,av=avail(fm).slice();if(ed&&!av.includes(cur))av.push(cur);if(!av.includes(cur)){cur=av[0];cc=''}$('sg').innerHTML=av.map(s=>`<button data-s="${s}" class="${s==cur?'on':''}">${isI(s)?'＋ ':''}${dot(s)}${sn(s)}</button>`).join('');
  const cs=cats(cur).slice();if(ed&&cc&&!cs.includes(cc))cs.push(cc);$('ch').innerHTML=cs.map(c=>`<button data-c="${esc(c)}" class="${c==cc?'on':''}">${esc(c)}</button>`).join('')||'<span class="mu">Añade conceptos en Ajustes</span>';
@@ -368,7 +368,6 @@ $('v').onclick=e=>{const rb=e.target.dataset&&e.target.dataset.rg;if(rb!=null&&r
  else if(d.nsi){const r=st.inv.find(x=>x.id==d.nsi);if(r){const i=num($('eii'+d.nsi).value),dt=$('eid'+d.nsi).value,k=(+dt.slice(0,4)-Y0)*12+ +dt.slice(5,7)-1;
   if(!(i>0)||!dt||k<0)return toast('Revisa importe y fecha (la app arranca en enero de 2027)');
   r.i=+$('eit'+d.nsi).value*Math.round(i*100)/100;r.d=dt;opi[d.nsi]=false;save();n=k;viewS();toast('Cambios guardados')}}
- else if(e.target.id=='ex')exp()
  else if(e.target.id=='pdf')pdfRep()
  else if(e.target.id=='gpdf')gdPdf()
  else if(e.target.id=='bks')bkSave()
@@ -454,8 +453,7 @@ const GD=[
 'Solo se marca una diferencia si supera el 20 % de la media y 15 €, para evitar falsas alarmas con gastos irregulares. Un concepto sin historial aparece como Sin histórico. Si prefieres ver los números, usa Ver como tabla.']],
 ['Informe del mes y exportación',[
 '• Informe del mes (PDF): al final de la pestaña Mes. Genera una página con las cifras clave, el gasto por categoría, los mayores gastos y el resumen de ahorro del mes que estás viendo.',
-'• Movimientos del mes para la plantilla (pestaña Mes): crea un Excel con los movimientos del mes que estás viendo, en el orden de columnas de la hoja Movimientos de la plantilla, para copiarlos y pegarlos.',
-'• Exportar a Excel: también en Mes. Guarda un archivo con una hoja por categoría, un resumen y tus inversiones.']],
+'• Exportar movimientos a Excel (pestaña Mes): crea un Excel con los movimientos del mes que estás viendo, en el orden de columnas de la hoja Movimientos de la plantilla, para copiarlos y pegarlos.']],
 ['Ajustes y tus datos',[
 '• Apariencia: automático (sigue tu móvil), claro u oscuro. Se guarda en este dispositivo.',
 '• Cuentas e ingresos: saldos iniciales, sueldo mensual neto y pagas extra.',
@@ -529,15 +527,6 @@ async function pdfRep(){try{const dl=await getDl();if(!window.jspdf)return toast
  rows.forEach(r=>{tx(r[0],M,y,{s:10,c:MU});tx(r[1],W-M,y,{a:'right',s:10,b:1});y+=3;ln(y,TR);y+=6.2});
  const np=d.getNumberOfPages(),ts=T.toLocaleDateString('es-ES');for(let i=1;i<=np;i++){d.setPage(i);ln(285);tx('Generado el '+ts+' con Sobrea',M,290,{s:8,c:MU});tx('Página '+i+' de '+np,W-M,290,{s:8,c:MU,a:'right'})}
  await dl.save({filename:'Sobrea_Informe_'+ym(n)+'.pdf',data:d.output('arraybuffer')});toast('Informe PDF generado')}catch(e){toast('No se pudo generar el informe'+(e&&e.code?': '+e.code:''))}}
-async function exp(){try{const dl=await getDl();
- const us=new Set(['resumen','inversiones']),u=s=>{const b=sh(s);let x=b,i=2;while(us.has(x.toLowerCase()))x=b.slice(0,28)+' '+i++;us.add(x.toLowerCase());return x},wb=XLSX.utils.book_new(),mx=Math.max(n,...st.mv.concat(st.inv).map(r=>(+r.d.slice(0,4)-Y0)*12+ +r.d.slice(5,7)-1));
- for(const s of ks())XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['MES','FECHA','CONCEPTO','IMPORTE','NOTA','PERIODIFICADO'],...st.mv.filter(x=>x.s==s).sort((a,b)=>a.d.localeCompare(b.d)).map(x=>[MN[+x.d.slice(5,7)-1],x.d,x.c,x.i,x.nt||'',x.p>1?x.p+' meses':''])]),u(s));
- const rs=[['MES','INGRESOS','INGRESOS EXTRA',...sk().map(s=>sn(s).toUpperCase()),'EXTRAORD.','SALDO CUENTA DIARIA','SALDO AHORRO','INVERTIDO','SOBRANTE','FONDO EMERG.']],f=fd(mx);
- for(let k=0;k<=mx;k++)rs.push([MN[k%12]+' '+(Y0+Math.floor(k/12)),inc(k),incx(k),...sk().map(s=>sp(s,k)),sp('X',k),saldo(k),sav(k),invd(k),huc(k),f[k].f]);
- XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rs),'Resumen');
- if((st.gl||[]).length)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['OBJETIVO','META','APORTADO','DESDE','HASTA'],...st.gl.map(g=>[g.n,g.t,gct(g),ml(g.m0),ml(g.m1)]),[],['OBJETIVO','MES','IMPORTE'],...st.gc.map(c=>[(st.gl.find(g=>g.id==c.g)||{n:''}).n,ml(c.k),c.a])]),'Objetivos');
- XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['FECHA','IMPORTE (+invertido / −retirado)'],...st.inv.slice().sort((a,b)=>a.d.localeCompare(b.d)).map(x=>[x.d,x.i])]),'Inversiones');
- await dl.save({filename:'Sobrea_2027.xlsx',data:XLSX.write(wb,{type:'array',bookType:'xlsx'})});toast('Excel exportado')}catch(e){toast('No se pudo exportar'+(e&&e.code?': '+e.code:''))}}
 async function expPl(){try{const mv=st.mv.filter(x=>mi(x)==n).sort((a,b)=>a.d.localeCompare(b.d)||String(a.id).localeCompare(String(b.id)));if(!mv.length)return toast('No hay movimientos en '+ml(n));const dl=await getDl(),X=XLSX,iso=d=>({t:'n',v:Math.round(Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10))/864e5)+25569,z:'dd/mm/yyyy'}),ws=X.utils.aoa_to_sheet([['Fecha','Categoría','Concepto','Importe','Nota','Repartir en (meses)'],...mv.map(x=>[iso(x.d),sn(x.s),x.c||'',x.i,x.nt||'',x.p>1?x.p:''])]),wb=X.utils.book_new();ws['!cols']=[12,18,20,12,30,12].map(w=>({wch:w}));X.utils.book_append_sheet(wb,ws,'Movimientos');
  await dl.save({filename:'Sobrea_movimientos_'+ym(n)+'.xlsx',data:X.write(wb,{type:'array',bookType:'xlsx'})});toast(mv.length+' movimientos exportados')}catch(e){toast('No se pudo exportar'+(e&&e.code?': '+e.code:''))}}
 let ob=null,ld=0;
